@@ -171,7 +171,7 @@ void updateStatusLed(uint32_t nowMs, RobotMode mode, bool ps4Connected, bool gri
 void cancelBenchTest();
 void handleSerialBenchTest(uint32_t nowMs, RobotMode currentMode);
 
-// Mode Tab Entry Points (manual.ino, line_follower.ino, maze.ino; Step 5 adds sumo.ino)
+// Mode Tab Entry Points (manual.ino, line_follower.ino, maze.ino, sumo.ino)
 void initManualMode(uint32_t nowMs);
 void runManual(uint32_t nowMs);
 void initLineFollowerMode(uint32_t nowMs);
@@ -180,6 +180,8 @@ void initMazeMode(uint32_t nowMs);
 void runMaze(uint32_t nowMs);
 void clearSavedMazePaths();
 void printSavedMazePaths();
+void initCombatSumoMode(uint32_t nowMs);
+void runCombatSumo(uint32_t nowMs);
 
 // ============================================================================
 //  GLOBAL ROBOT STATE
@@ -207,9 +209,6 @@ static uint8_t  s_rumbleSmall = 0, s_rumbleLarge = 0;
 static uint32_t s_rumbleEndMs = 0;
 static volatile bool s_ps4FeedbackDirty = false;
 static uint32_t s_lastPs4SendMs    = 0;
-
-// One-time stub notice latch (removed as Steps 1.4–1.7 tabs are added)
-static bool     s_stubNoticePrinted = false;
 
 // ============================================================================
 //  PS4 BLUETOOTH EVENT CALLBACKS (Minimal — Core 0 safe!)
@@ -507,23 +506,13 @@ void updateModeSwitcher(uint32_t nowMs) {
 }
 
 // ============================================================================
-//  MODE HANDLERS (Step 1 Safe Dispatch — Steps 2+ replace stubs with .ino tabs)
+//  IDLE SAFE MODE HANDLER
 // ============================================================================
 
 void runModeIdleSafe(uint32_t nowMs) {
   (void)nowMs;
   // Motors remain stopped unless Serial bench-test motor sequence is active
   // inside hardware.ino.
-}
-
-void runModePlaceholderStub(const char* tabName) {
-  stopMotorsImmediate();
-  if (!s_stubNoticePrinted) {
-    s_stubNoticePrinted = true;
-    Serial.print(F("[STUB] "));
-    Serial.print(tabName);
-    Serial.println(F(" not yet implemented (Step 1 foundation only). Motors held safe."));
-  }
 }
 
 // ============================================================================
@@ -535,7 +524,7 @@ void setup() {
   // Short non-blocking wait is avoided; small startup banner prints cleanly.
   Serial.println();
   Serial.println(F("=================================================="));
-  Serial.println(F(" Tech Rumble 2 — ESP32 DevKit V1 Firmware (Step 1)"));
+  Serial.println(F(" Tech Rumble 2 — ESP32 DevKit V1 Firmware (v1.0)"));
   Serial.println(F(" Core 2.0.17 | PS4Controller (aed3) | Non-Blocking"));
   Serial.println(F("=================================================="));
 
@@ -600,8 +589,7 @@ void loop() {
         runMaze(nowMs);
         break;
       case MODE_COMBAT_SUMO:
-        // TODO(Step 5 / sumo.ino): replace with runCombatSumo(nowMs);
-        runModePlaceholderStub("sumo.ino");
+        runCombatSumo(nowMs);
         break;
     }
 
