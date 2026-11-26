@@ -1,7 +1,7 @@
 # Tech Rumble 2 — Project Status Tracker
 
 **Last Updated:** 2026-11-26  
-**Current Phase:** Phase 1 — Step 3 Complete (Awaiting Approval for Step 4)  
+**Current Phase:** Phase 1 — Step 4 Complete (Awaiting Approval for Step 5)  
 **Git Branch:** `main` (tracking `origin/main` → `https://github.com/MrMorale-007/Tech-Rumble`)
 
 ---
@@ -66,10 +66,20 @@
   - Confirmed zero `.h`/`.cpp` files, zero `delay()`/`pulseIn()`/`ledcAttach()`, zero GPIO/LEDC/ISR calls outside `hardware.ino`, and zero `PS4.` calls in `line_follower.ino`.
   - Ran 4-tab alphabetical concatenation `g++ -std=gnu++17 -Wall -Wextra -fsyntax-only` (`TechRumbleRobot.ino` + `hardware.ino` + `line_follower.ino` + `manual.ino`) → **PASSED with 0 errors and 0 warnings**.
 
+### Phase 1 — Step 4: Autonomous Maze Solver with Learn & Replay (`maze.ino`)
+- [x] **Created [maze.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/maze.ino):**
+  - **Wall & Cell Navigation (Non-Blocking `millis()`):** 5-state machine (`ADVANCE`, `PULLIN`, `SETTLE`, `DECIDE`, `TURN`) combining `350 mm` corridor cell travel, ultrasonic dual-wall / single-wall P-centering (`MAZE_WALL_KP = 5.5` for `35 cm` corridors with `~5 cm` clearance/side), front-wall deceleration (`26 cm → 14 cm` scoop-safe stop), `80 mm` junction pull-in, `140 ms` ultrasonic brake settle, and calibrated encoder turns (`MAZE_TURN_90_TICKS = 15`, `MAZE_TURN_180_TICKS = 30`).
+  - **Mirrored Exploration & Shortest-Path Optimization:** Uses Left-Hand Rule (`L→S→R→B`) on `LANE_A` and Right-Hand Rule (`R→S→L→B`) on mirrored `LANE_B`. Logs decisions (`L`, `R`, `S`, `B`) and iteratively collapses dead-end backtracks (`LBR→B`, `LBS→R`, `RBL→B`, `SBL→R`, `SBS→B`, `LBL→S`, plus mirrored `RBS→L`, `SBR→L`, `RBR→S`).
+  - **ESP32 `Preferences` (NVS) Learn & Replay:** Saves simplified optimal path per lane (`tr2_maze`: `"path_a"` / `"path_b"`) upon goal/exit detection; subsequent runs automatically execute **REPLAY** (with live wall-mismatch safety fallback to Learn rule so the robot never rams a wall).
+  - **Goal / Loading Zone Detection & Rulebook Guards:** Detects sustained open space on all 3 ultrasonics (`>= 42 cm` for `240 ms` after `500 mm` travel) → brakes, saves NVS path if learning, and transitions to `MODE_IDLE_SAFE`. Zero `PS4.` calls (Rule 4 autonomous lockout), preserves Sudden Death Grip-Lock, `2200 ms` turn timeout, `2500 ms` anti-stuck failsafe, `240 s` max run cap, and immediate motor stop on mode exit.
+- [x] **Wired into [TechRumbleRobot.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/TechRumbleRobot.ino) & [hardware.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/hardware.ino):** Added `#include <Preferences.h>`, wired `initMazeMode()` / `runMaze()`, and added Serial bench commands `p` (print saved NVS maze paths) and `z` (clear saved NVS maze paths).
+- [x] **Verification Results:**
+  - Confirmed strictly `.ino` tabs only (5 tabs total, zero `.h`/`.cpp`), zero `delay()`/`pulseIn()`/`ledcAttach()`, zero GPIO/LEDC/ISR calls outside `hardware.ino`, and zero `PS4.` references in `line_follower.ino` or `maze.ino`.
+  - Ran 5-tab alphabetical concatenation `g++ -std=gnu++17 -Wall -Wextra` compile + 12-case runtime unit test of `recordMazeDecision()` / `simplifyMazePath()` → **0 errors, 0 warnings, 12/12 path-simplification tests PASSED**.
+
 ---
 
-## Remaining Phase 1 Roadmap (Paused — Waiting for Step 4 Approval)
-- [ ] **Step 4:** Autonomous Maze Solver (`TechRumbleRobot/maze.ino`) — 35 cm corridor dual-wall centering PID, mirrored Lane A/B encoder 90° turns, Loading Zone stop/handoff, gentle exit run.
+## Remaining Phase 1 Roadmap (Paused — Waiting for Step 5 Approval)
 - [ ] **Step 5:** Battle Royale / Combat Mode (`TechRumbleRobot/sumo.ino`) — Knockout Shared Pocket high-torque manual combat drive, `POSE_COMBAT_TUCK`, 15 s immobility alert, edge/proximity PS4 feedback.
 - [ ] **Step 6:** Final Arduino IDE Core `2.0.17` compile check & full bench/field validation.
 

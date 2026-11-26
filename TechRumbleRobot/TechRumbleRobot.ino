@@ -26,6 +26,7 @@
  */
 
 #include <PS4Controller.h>
+#include <Preferences.h>
 
 // ============================================================================
 //  CONFIGURATION CONSTANTS
@@ -170,11 +171,15 @@ void updateStatusLed(uint32_t nowMs, RobotMode mode, bool ps4Connected, bool gri
 void cancelBenchTest();
 void handleSerialBenchTest(uint32_t nowMs, RobotMode currentMode);
 
-// Mode Tab Entry Points (manual.ino, line_follower.ino; future tabs in Steps 4-5)
+// Mode Tab Entry Points (manual.ino, line_follower.ino, maze.ino; Step 5 adds sumo.ino)
 void initManualMode(uint32_t nowMs);
 void runManual(uint32_t nowMs);
 void initLineFollowerMode(uint32_t nowMs);
 void runLineFollower(uint32_t nowMs);
+void initMazeMode(uint32_t nowMs);
+void runMaze(uint32_t nowMs);
+void clearSavedMazePaths();
+void printSavedMazePaths();
 
 // ============================================================================
 //  GLOBAL ROBOT STATE
@@ -318,6 +323,8 @@ void enterMode(RobotMode nextMode, uint32_t nowMs, const char* reason) {
     applyArmPose(POSE_COMBAT_TUCK);
   } else if (nextMode == MODE_LINE_FOLLOWER) {
     initLineFollowerMode(nowMs);
+  } else if (nextMode == MODE_MAZE) {
+    initMazeMode(nowMs);
   } else if (isAutonomousMode(nextMode)) {
     // Reset encoders for deterministic autonomous distance/turn tracking
     resetEncoders();
@@ -590,8 +597,7 @@ void loop() {
         runLineFollower(nowMs);
         break;
       case MODE_MAZE:
-        // TODO(Step 4 / maze.ino): replace with runMaze(nowMs);
-        runModePlaceholderStub("maze.ino");
+        runMaze(nowMs);
         break;
       case MODE_COMBAT_SUMO:
         // TODO(Step 5 / sumo.ino): replace with runCombatSumo(nowMs);

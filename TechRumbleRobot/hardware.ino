@@ -847,6 +847,7 @@ static void printBenchMenu() {
   Serial.println(F("  g / o        : Close gripper / Open gripper (blocked if Grip-Lock ON)"));
   Serial.println(F("  u            : Toggle Grip-Lock ON/OFF (bench override)"));
   Serial.println(F("  r            : Reset wheel encoder counters to 0"));
+  Serial.println(F("  p / z        : Print / Clear saved NVS Maze Learn/Replay paths"));
   Serial.println(F("  a <j> <deg>  : Move servo joint j (0=Base 1=Shld 2=Elb 3=Grip) to deg"));
   Serial.println(F("  t <val>      : Set all 3 IR black/white thresholds (0..4095)"));
   Serial.println(F("-------------------------------------------------------------\n"));
@@ -945,6 +946,14 @@ static void executeBenchLine(const char* line, uint32_t nowMs, RobotMode current
     case 'R':
       resetEncoders();
       Serial.println(F("[BENCH] Encoders reset to 0."));
+      break;
+    case 'p':
+    case 'P':
+      printSavedMazePaths();
+      break;
+    case 'z':
+    case 'Z':
+      clearSavedMazePaths();
       break;
     case 'a':
     case 'A': {
