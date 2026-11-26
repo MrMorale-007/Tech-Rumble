@@ -1,7 +1,7 @@
 # Tech Rumble 2 — Project Status Tracker
 
 **Last Updated:** 2026-11-26  
-**Current Phase:** Phase 1 — Step 4 Complete (Awaiting Approval for Step 5)  
+**Current Phase:** Phase 1 — 100% FIRMWARE COMPLETE (All 6 `.ino` Tabs Implemented & Verified)  
 **Git Branch:** `main` (tracking `origin/main` → `https://github.com/MrMorale-007/Tech-Rumble`)
 
 ---
@@ -77,10 +77,23 @@
   - Confirmed strictly `.ino` tabs only (5 tabs total, zero `.h`/`.cpp`), zero `delay()`/`pulseIn()`/`ledcAttach()`, zero GPIO/LEDC/ISR calls outside `hardware.ino`, and zero `PS4.` references in `line_follower.ino` or `maze.ino`.
   - Ran 5-tab alphabetical concatenation `g++ -std=gnu++17 -Wall -Wextra` compile + 12-case runtime unit test of `recordMazeDecision()` / `simplifyMazePath()` → **0 errors, 0 warnings, 12/12 path-simplification tests PASSED**.
 
+### Phase 1 — Step 5 (Final): Autonomous Sumo Combat Mode (`sumo.ino`) & Full 6-Tab Audit
+- [x] **Created [sumo.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/sumo.ino):**
+  - **Mandatory Start Countdown & Arm Stow:** Non-blocking `5000 ms` (`SUMO_START_DELAY_MS`) countdown before first motion (prevents Rule 5 false starts); automatically stows arm into `POSE_COMBAT_TUCK` (with Grip-Lock preserved if carrying 20 g Sudden Death load, suspended clear of chassis per Rule 3.1) or `POSE_HOME_STOW` when empty (≤ 25×25×50 cm per Rule 2).
+  - **Highest-Priority Dohyo Ring-Edge Avoidance:** Continuously monitors all 3× TCRT5000 IR sensors (`SUMO_EDGE_IS_WHITE = true` default for white dohyo border, flippable to `false` for dark border/drop-off). Preempts Search, Track, and Full Ram with immediate active brake (`60 ms`) → timed reverse (`320 ms`, `-215 PWM`) → pivot away from detected border side (`380 ms`, `190 PWM`) → resume search.
+  - **3-Ultrasonic Search, Align & Full Ram State Machine:** Alternating sweep spin + short forward creep (beats Rule 8.3 15-second immobility rule) scanning `Front`/`Left`/`Right` HC-SR04 sensors (`75 cm` detect, `65 cm` attack lock) → rapid `205 PWM` align pivot toward side target → `255 PWM` maximum safe straight ram with side-slip nudging and `220 ms` ping-jitter hold.
+  - **Mode Exit Safety:** Immediately stops motors on external mode change, `Share` emergency abort, or PS4 disconnect fail-safe. *(Note: Tech Rumble 2 Rule 4 specifies wireless Manual control for Knockout Fighting — confirm with Head Referee before running autonomous Sumo in Knockout Battle Royale, or use `MODE_MANUAL` with `R2` Boost.)*
+- [x] **Finalized [TechRumbleRobot.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/TechRumbleRobot.ino):** Wired `initCombatSumoMode()` and `runCombatSumo()`, removed temporary placeholder stub, updated startup banner to `v1.0`.
+- [x] **Full 6-Tab Firmware Verification & Rulebook Cross-Check:**
+  - Confirmed all 6 `.ino` tabs exist (`TechRumbleRobot.ino`, `hardware.ino`, `line_follower.ino`, `manual.ino`, `maze.ino`, `sumo.ino`) with **0 `.h`/`.cpp` files**.
+  - Confirmed **0 `delay()`**, **0 `pulseIn()`**, **0 Core `3.x` `ledcAttach()`**, **0 GPIO/LEDC/ISR calls outside `hardware.ino`**, and **0 `PS4.` calls in autonomous tabs** (`line_follower.ino`, `maze.ino`, `sumo.ino`).
+  - `arduino-cli` not installed locally; ran full 6-tab Arduino alphabetical concatenation through `g++ -std=gnu++17 -Wall -Wextra -Werror` + automated runtime state-machine tests → **0 errors, 0 warnings, 12/12 Maze path-simplifier tests PASSED, Sumo countdown/search/align/ram/edge-preemption tests PASSED**.
+
 ---
 
-## Remaining Phase 1 Roadmap (Paused — Waiting for Step 5 Approval)
-- [ ] **Step 5:** Battle Royale / Combat Mode (`TechRumbleRobot/sumo.ino`) — Knockout Shared Pocket high-torque manual combat drive, `POSE_COMBAT_TUCK`, 15 s immobility alert, edge/proximity PS4 feedback.
+## Next Phase — Hardware Bench Bring-Up & Field Calibration
+- [ ] Flash `TechRumbleRobot/` in Arduino IDE targeting **ESP32 DevKit V1** on **ESP32 Arduino Core `2.0.17`** with `PS4Controller` (`aed3`) library installed.
+- [ ] Run Serial Bench-Test Helper (`115200` baud, send `?`) in `MODE_IDLE_SAFE` to record physical calibration values below and perform Rule 2 & Rule 9.2 technical inspection checks (25×25×50 cm, ≤ 5 kg, ≤ 13.0 V, `PB-1601` kill switch, main battery fuse, LiPo protective casing).
 - [ ] **Step 6:** Final Arduino IDE Core `2.0.17` compile check & full bench/field validation.
 
 ---

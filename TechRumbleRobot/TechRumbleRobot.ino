@@ -309,24 +309,18 @@ void enterMode(RobotMode nextMode, uint32_t nowMs, const char* reason) {
   robot.prevMode      = robot.mode;
   robot.mode          = nextMode;
   robot.modeEnteredMs = nowMs;
-  s_stubNoticePrinted = false;
 
   // Mode-specific entry safety setup
   if (nextMode == MODE_IDLE_SAFE) {
     freezeArmInPlace();
   } else if (nextMode == MODE_MANUAL) {
     initManualMode(nowMs);
-  } else if (nextMode == MODE_COMBAT_SUMO) {
-    // Protect 20 g load immediately on entering Battle Royale
-    setGripLock(true);
-    applyArmPose(POSE_COMBAT_TUCK);
   } else if (nextMode == MODE_LINE_FOLLOWER) {
     initLineFollowerMode(nowMs);
   } else if (nextMode == MODE_MAZE) {
     initMazeMode(nowMs);
-  } else if (isAutonomousMode(nextMode)) {
-    // Reset encoders for deterministic autonomous distance/turn tracking
-    resetEncoders();
+  } else if (nextMode == MODE_COMBAT_SUMO) {
+    initCombatSumoMode(nowMs);
   }
 
   refreshPs4Lightbar();
