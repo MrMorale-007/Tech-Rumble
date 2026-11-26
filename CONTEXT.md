@@ -31,7 +31,7 @@ CAD reference files live in [docs/Car Design/](file:///home/goodkid/Desktop/Tech
 | **Line Sensors** | 3× TCRT5000 IR Modules (Left, Center, Right) | Mounted in horizontal row on front underside, right behind front scoop. |
 | **Wheel Encoders** | 2× 20-Slot Optical Encoders (Left, Right) | Mounted on wheel shafts → `≈ 10.68 mm` per rising edge (`213.6 mm / 20 slots`). |
 | **Load Detection** | 1× Grip Microswitch | Inside gripper jaws; wired `Active LOW` to GND with ESP32 internal `INPUT_PULLUP`. |
-| **Power & Safety** | 12V Battery (≤13.0V charged) + Main Fuse + `PB-1601` Kill Switch + 5V Buck Converter | `PB-1601` cuts ALL 12V circuit power (mandatory for inspection). No boost converters allowed. |
+| **Power & Safety** | 3S LiPo (`11.1 V` nominal, `12.6 V` charged ≤ `13.0 V` limit) or 3× 18650 + Main Fuse (Rule 9.2) + `PB-1601` Kill Switch + High-Current 5V Buck Converter + 1–2× `470 µF–1000 µF` 5V rail decoupling capacitors + Common GND bus | `PB-1601` cuts ALL 12V circuit power (mandatory for inspection). No boost converters allowed. Fit main battery fuse & protective LiPo casing per Rule 9.2; secure all connectors for Battle Royale impacts. |
 | **Chassis Scoop** | Curved front plow (`kasa7a_2.SLDPRT`) | Confirm passive pushing compliance at tech inspection (Rule 8.4 / 9.1). |
 
 ---
