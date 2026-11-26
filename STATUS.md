@@ -1,7 +1,7 @@
 # Tech Rumble 2 — Project Status Tracker
 
 **Last Updated:** 2026-11-26  
-**Current Phase:** Phase 1 — Step 2 Complete (Awaiting Approval for Step 3)  
+**Current Phase:** Phase 1 — Step 3 Complete (Awaiting Approval for Step 4)  
 **Git Branch:** `main` (tracking `origin/main` → `https://github.com/MrMorale-007/Tech-Rumble`)
 
 ---
@@ -53,10 +53,22 @@
   - Confirmed zero `.h`/`.cpp` files, zero `delay()`/`pulseIn()`/`ledcAttach()`, and zero raw GPIO/LEDC/ISR calls outside `hardware.ino`.
   - Ran concatenated 3-tab `g++ -std=gnu++17 -Wall -Wextra -fsyntax-only` check (`TechRumbleRobot.ino` + `hardware.ino` + `manual.ino`) → **PASSED with 0 errors and 0 warnings**.
 
+### Phase 1 — Step 3: Autonomous 3-IR Line Follower (`line_follower.ino`)
+- [x] **Created [line_follower.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/line_follower.ino):**
+  - **Weighted 3-IR Non-Blocking PID:** Maps `sensors.irMask` (`Left`, `Center`, `Right` → `-2.0 .. +2.0`) through a `50 Hz` (`20 ms`) PID controller (`LF_KP`, `LF_KI`, `LF_KD` tunable constants at top of file) with integral anti-windup, zero-crossing reset, reacquisition D-kick suppression, and dynamic curve slowdown (`LF_BASE_PWM = 135`, `LF_MAX_PWM = 175`, gentle `LF_SLEW_STEP = 16` for Sudden Death 20 g load stability).
+  - **Arena Feature Handlers (Arena Guide p. 3):**
+    - **`5 cm` Line Gap (`000` from straight tracking):** Bridges straight using encoder distance (`LF_GAP_BRIDGE_MAX_MM = 85 mm`) before entering pivot recovery.
+    - **Sharp `90°` Corner & `2 × 45°` Zig-Zag (`000` off curve / overshoot):** Controlled in-place pivot using `lastLineDir` (seeded by mirrored `LANE_A` / `LANE_B` hint) until line is reacquired.
+    - **`24 × 2.5 cm` End Bars (`111`):** Start-bar ignore window (`150 mm`) + `45 ms` debounce; in `STAGE_KNOCKOUT` pulls `120 mm` into the Changing Mode Zone and brakes to `MODE_IDLE_SAFE`; in `STAGE_GROUP` brakes cleanly at the far/home End Bar for two-way Loading Zone pickup & return.
+  - **Rulebook Compliance & Fail-Safes:** Zero `PS4.` calls in `line_follower.ino` (Rule 4 autonomous drive lockout), preserves Sudden Death Grip-Lock if load is held, `1800 ms` lost-line Ring-Out brake fail-safe, `180 s` max run cap, and immediate motor stop on `Share` abort or external mode exit.
+- [x] **Wired into [TechRumbleRobot.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/TechRumbleRobot.ino):** Added `initLineFollowerMode()` in `enterMode()` and `runLineFollower()` in `loop()`.
+- [x] **Verification Results:**
+  - Confirmed zero `.h`/`.cpp` files, zero `delay()`/`pulseIn()`/`ledcAttach()`, zero GPIO/LEDC/ISR calls outside `hardware.ino`, and zero `PS4.` calls in `line_follower.ino`.
+  - Ran 4-tab alphabetical concatenation `g++ -std=gnu++17 -Wall -Wextra -fsyntax-only` (`TechRumbleRobot.ino` + `hardware.ino` + `line_follower.ino` + `manual.ino`) → **PASSED with 0 errors and 0 warnings**.
+
 ---
 
-## Remaining Phase 1 Roadmap (Paused — Waiting for Step 3 Approval)
-- [ ] **Step 3:** Autonomous Line Follower (`TechRumbleRobot/line_follower.ino`) — 3-IR PD follower, 90° corner & 45° zig-zag memory, 5 cm encoder-bridged gap crossing, 24 cm end-bar Group/Knockout handling.
+## Remaining Phase 1 Roadmap (Paused — Waiting for Step 4 Approval)
 - [ ] **Step 4:** Autonomous Maze Solver (`TechRumbleRobot/maze.ino`) — 35 cm corridor dual-wall centering PID, mirrored Lane A/B encoder 90° turns, Loading Zone stop/handoff, gentle exit run.
 - [ ] **Step 5:** Battle Royale / Combat Mode (`TechRumbleRobot/sumo.ino`) — Knockout Shared Pocket high-torque manual combat drive, `POSE_COMBAT_TUCK`, 15 s immobility alert, edge/proximity PS4 feedback.
 - [ ] **Step 6:** Final Arduino IDE Core `2.0.17` compile check & full bench/field validation.

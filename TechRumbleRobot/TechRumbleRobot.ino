@@ -170,9 +170,11 @@ void updateStatusLed(uint32_t nowMs, RobotMode mode, bool ps4Connected, bool gri
 void cancelBenchTest();
 void handleSerialBenchTest(uint32_t nowMs, RobotMode currentMode);
 
-// Mode Tab Entry Points (manual.ino; future tabs added in Steps 3-5)
+// Mode Tab Entry Points (manual.ino, line_follower.ino; future tabs in Steps 4-5)
 void initManualMode(uint32_t nowMs);
 void runManual(uint32_t nowMs);
+void initLineFollowerMode(uint32_t nowMs);
+void runLineFollower(uint32_t nowMs);
 
 // ============================================================================
 //  GLOBAL ROBOT STATE
@@ -314,6 +316,8 @@ void enterMode(RobotMode nextMode, uint32_t nowMs, const char* reason) {
     // Protect 20 g load immediately on entering Battle Royale
     setGripLock(true);
     applyArmPose(POSE_COMBAT_TUCK);
+  } else if (nextMode == MODE_LINE_FOLLOWER) {
+    initLineFollowerMode(nowMs);
   } else if (isAutonomousMode(nextMode)) {
     // Reset encoders for deterministic autonomous distance/turn tracking
     resetEncoders();
@@ -583,8 +587,7 @@ void loop() {
         runManual(nowMs);
         break;
       case MODE_LINE_FOLLOWER:
-        // TODO(Step 3 / line_follower.ino): replace with runLineFollower(nowMs);
-        runModePlaceholderStub("line_follower.ino");
+        runLineFollower(nowMs);
         break;
       case MODE_MAZE:
         // TODO(Step 4 / maze.ino): replace with runMaze(nowMs);
