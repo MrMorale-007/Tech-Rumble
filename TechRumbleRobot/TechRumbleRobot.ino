@@ -153,6 +153,8 @@ float getServoCurrentDeg(ServoJoint joint);
 float getServoTargetDeg(ServoJoint joint);
 void freezeArmInPlace();
 void closeGripper();
+void jogGripperClose(float stepDeg);
+void clampGripperAtContact(float extraPreloadDeg);
 bool requestGripperOpen(bool overrideComboHeld);
 void armSuddenDeathLock(bool armed);
 void setGripLock(bool locked);
@@ -167,6 +169,10 @@ void setIrThresholds(uint16_t leftT, uint16_t centerT, uint16_t rightT);
 void updateStatusLed(uint32_t nowMs, RobotMode mode, bool ps4Connected, bool gripLocked);
 void cancelBenchTest();
 void handleSerialBenchTest(uint32_t nowMs, RobotMode currentMode);
+
+// Mode Tab Entry Points (manual.ino; future tabs added in Steps 3-5)
+void initManualMode(uint32_t nowMs);
+void runManual(uint32_t nowMs);
 
 // ============================================================================
 //  GLOBAL ROBOT STATE
@@ -302,6 +308,8 @@ void enterMode(RobotMode nextMode, uint32_t nowMs, const char* reason) {
   // Mode-specific entry safety setup
   if (nextMode == MODE_IDLE_SAFE) {
     freezeArmInPlace();
+  } else if (nextMode == MODE_MANUAL) {
+    initManualMode(nowMs);
   } else if (nextMode == MODE_COMBAT_SUMO) {
     // Protect 20 g load immediately on entering Battle Royale
     setGripLock(true);
@@ -572,8 +580,7 @@ void loop() {
         runModeIdleSafe(nowMs);
         break;
       case MODE_MANUAL:
-        // TODO(Step 2 / manual.ino): replace with runManual(nowMs);
-        runModePlaceholderStub("manual.ino");
+        runManual(nowMs);
         break;
       case MODE_LINE_FOLLOWER:
         // TODO(Step 3 / line_follower.ino): replace with runLineFollower(nowMs);

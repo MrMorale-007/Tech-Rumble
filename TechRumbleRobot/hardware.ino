@@ -669,11 +669,10 @@ void applyArmPose(ArmPose pose) {
   s_servoTgtDeg[JOINT_SHOULDER] = ARM_POSES[idx][JOINT_SHOULDER];
   s_servoTgtDeg[JOINT_ELBOW]    = ARM_POSES[idx][JOINT_ELBOW];
 
-  // SAFETY: Never open gripper via a pose preset while Grip-Lock is active!
+  // SAFETY: Never open or over-crush gripper via a pose preset while Grip-Lock is active!
+  // Preserves the contact-clamped angle so the Half-Metal MG996R never stalls.
   if (!grip.gripLockActive) {
     s_servoTgtDeg[JOINT_GRIPPER] = ARM_POSES[idx][JOINT_GRIPPER];
-  } else {
-    s_servoTgtDeg[JOINT_GRIPPER] = GRIPPER_CLOSED_DEG;
   }
   clampArmTargets();
 }
@@ -715,6 +714,26 @@ void closeGripper() {
   clampArmTargets();
 }
 
+void jogGripperClose(float stepDeg) {
+  if (stepDeg <= 0.0f) return;
+  const float dir = (GRIPPER_CLOSED_DEG >= GRIPPER_OPEN_DEG) ? 1.0f : -1.0f;
+  float nextDeg = s_servoTgtDeg[JOINT_GRIPPER] + dir * stepDeg;
+  if (dir > 0.0f && nextDeg > GRIPPER_CLOSED_DEG) nextDeg = GRIPPER_CLOSED_DEG;
+  if (dir < 0.0f && nextDeg < GRIPPER_CLOSED_DEG) nextDeg = GRIPPER_CLOSED_DEG;
+  s_servoTgtDeg[JOINT_GRIPPER] = nextDeg;
+  clampArmTargets();
+}
+
+void clampGripperAtContact(float extraPreloadDeg) {
+  if (extraPreloadDeg < 0.0f) extraPreloadDeg = 0.0f;
+  const float dir = (GRIPPER_CLOSED_DEG >= GRIPPER_OPEN_DEG) ? 1.0f : -1.0f;
+  float holdDeg = s_servoCurDeg[JOINT_GRIPPER] + dir * extraPreloadDeg;
+  if (dir > 0.0f && holdDeg > GRIPPER_CLOSED_DEG) holdDeg = GRIPPER_CLOSED_DEG;
+  if (dir < 0.0f && holdDeg < GRIPPER_CLOSED_DEG) holdDeg = GRIPPER_CLOSED_DEG;
+  s_servoTgtDeg[JOINT_GRIPPER] = holdDeg;
+  clampArmTargets();
+}
+
 bool requestGripperOpen(bool overrideComboHeld) {
   if (grip.gripLockActive && !overrideComboHeld) {
     Serial.println(F("[GRIP] Release BLOCKED by Sudden Death Grip-Lock!"));
@@ -734,14 +753,22 @@ void armSuddenDeathLock(bool armed) {
   if (armed) {
     grip.gripLockActive = true;
     grip.loadLostAlarm  = false;
-    closeGripper();
+    if (s_gripDebounced) {
+      clampGripperAtContact(4.0f);
+    } else {
+      closeGripper();
+    }
   }
 }
 
 void setGripLock(bool locked) {
   grip.gripLockActive = locked;
   if (locked) {
-    closeGripper();
+    if (s_gripDebounced) {
+      clampGripperAtContact(4.0f);
+    } else {
+      closeGripper();
+    }
   }
 }
 

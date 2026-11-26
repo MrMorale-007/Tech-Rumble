@@ -1,7 +1,7 @@
 # Tech Rumble 2 — Project Status Tracker
 
 **Last Updated:** 2026-11-26  
-**Current Phase:** Phase 1 — Step 1 Complete (Awaiting Approval for Step 2)  
+**Current Phase:** Phase 1 — Step 2 Complete (Awaiting Approval for Step 3)  
 **Git Branch:** `main` (tracking `origin/main` → `https://github.com/MrMorale-007/Tech-Rumble`)
 
 ---
@@ -39,10 +39,23 @@
   - Confirmed zero `delay()`, zero `pulseIn()`, zero Core `3.x` `ledcAttach()`, and zero GPIO/PWM/ISR code in `TechRumbleRobot.ino`.
   - Ran full concatenated `g++ -std=gnu++17 -Wall -Wextra -fsyntax-only` check against ESP32 Core `2.0.17` & `PS4Controller` (`aed3`) API stubs → **PASSED with 0 errors and 0 warnings**. *(Arduino IDE hardware compile/flash check pending on user's board.)*
 
+### Phase 1 — Step 2: Manual PS4 Drive & 4-DOF Robotic Arm Control (`manual.ino`)
+- [x] **Created [manual.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/manual.ino):**
+  - **Arcade Drive:** `LStickY` throttle + `RStickX` steering with deadzone filtering (`16`), smooth linear+quadratic expo curve (`0.35`), proportional peak normalization, and 3 speed gears (`L2` Precision 43% + gentle slew for Loading Zone & Ramps ribs, Default Normal 73%, `R2` Boost 100% for serrated ramp, `L3` active short-brake).
+  - **4-DOF Arm Incremental Control (non-blocking `millis()`):** D-Pad Left/Right → Base Waist, D-Pad Up/Down → Shoulder (ignored while `Options` is held for mode switching!), `RStickY` → Elbow (with `36` deadzone + `1.25×` vertical-dominance guard so horizontal steering never drifts the elbow), target lead cap (`6°`) preventing stop windup, and 50% precision jog scaling when `L2` is held.
+  - **Gripper Control with Microswitch Feedback & Sudden Death Lock:** `R1` incrementally closes gripper and auto-stops + clamps with gentle `4°` preload upon `sensors.gripSwitchPressed` contact (protecting the Half-Metal MG996R gears!) with PS4 rumble confirmation; `L1` opens freely when unlocked, or requires `L1 + Circle` (`300 ms` hold) when Sudden Death Grip-Lock is active; `Touchpad` (`300 ms` hold) toggles Grip-Lock explicitly.
+  - **Face-Button Arm Presets (rising-edge triggered):** `Cross` (`POSE_HOME_STOW`), `Square` (`POSE_PICKUP_READY`), `Triangle` (`POSE_CARRY_SAFE`, auto-arming Sudden Death Grip-Lock when load is detected), `Circle` alone (`POSE_DEPOSIT`, keeping Grip-Lock intact until `L1 + Circle` release).
+  - **Defense-in-Depth Disconnect Safety:** Immediately stops motors and freezes servos with full holding torque if `!PS4.isConnected()`.
+- [x] **Updated [hardware.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/hardware.ino) & [TechRumbleRobot.ino](file:///home/goodkid/Desktop/Tech%20Rumble/TechRumbleRobot/TechRumbleRobot.ino):**
+  - Added direction-agnostic `jogGripperClose()` and `clampGripperAtContact()` HAL helpers; updated `applyArmPose()`, `armSuddenDeathLock()`, and `setGripLock()` to preserve the contact-clamped gripper angle so Half-Metal gears never stall.
+  - Wired `initManualMode()` in `enterMode()` and `runManual()` in `loop()`.
+- [x] **Verification Results:**
+  - Confirmed zero `.h`/`.cpp` files, zero `delay()`/`pulseIn()`/`ledcAttach()`, and zero raw GPIO/LEDC/ISR calls outside `hardware.ino`.
+  - Ran concatenated 3-tab `g++ -std=gnu++17 -Wall -Wextra -fsyntax-only` check (`TechRumbleRobot.ino` + `hardware.ino` + `manual.ino`) → **PASSED with 0 errors and 0 warnings**.
+
 ---
 
-## Remaining Phase 1 Roadmap (Paused — Waiting for Step 2 Approval)
-- [ ] **Step 2:** Manual Drive, Ramps & Arm Control (`TechRumbleRobot/manual.ino`) — PS4 multi-gear drive, smooth arm jogging + presets, guarded `L1+R1+Circle` Grip-Lock release.
+## Remaining Phase 1 Roadmap (Paused — Waiting for Step 3 Approval)
 - [ ] **Step 3:** Autonomous Line Follower (`TechRumbleRobot/line_follower.ino`) — 3-IR PD follower, 90° corner & 45° zig-zag memory, 5 cm encoder-bridged gap crossing, 24 cm end-bar Group/Knockout handling.
 - [ ] **Step 4:** Autonomous Maze Solver (`TechRumbleRobot/maze.ino`) — 35 cm corridor dual-wall centering PID, mirrored Lane A/B encoder 90° turns, Loading Zone stop/handoff, gentle exit run.
 - [ ] **Step 5:** Battle Royale / Combat Mode (`TechRumbleRobot/sumo.ino`) — Knockout Shared Pocket high-torque manual combat drive, `POSE_COMBAT_TUCK`, 15 s immobility alert, edge/proximity PS4 feedback.
